@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable OMR Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Customizable Digital OMR Sheet Simulator</h1>
+    </header>
+
+    <main>
+        <section id="controls">
+            <h2>Configuration</h2>
+            <div class="control-group">
+                <label for="question-numbers">Question Numbers:</label>
+                <input type="text" id="question-numbers" name="question-numbers" placeholder="e.g., 1-10, 15-23, 28" aria-describedby="input-help">
+                <small id="input-help">Enter individual numbers or ranges (e.g., 1-5, 8, 11-13)</small>
+            </div>
+            <div class="control-group">
+                <label for="num-choices">Choices per Question:</label>
+                <select id="num-choices" name="num-choices">
+                    <option value="4" selected>4 (A-D)</option>
+                    <option value="5">5 (A-E)</option>
+                    <option value="6">6 (A-F)</option>
+                </select>
+            </div>
+            <button id="generate-btn">Generate OMR Sheet</button>
+        </section>
+
+        <!-- OMR Sheet Section - Initially Hidden via JS/CSS -->
+        <section id="omr-sheet-container" style="display: none;">
+            <!-- Dynamic Headings -->
+            <div class="omr-headings">
+                <h3 id="user-answers-heading" style="display: none;">Your Answers</h3>
+                <h3 id="correct-key-heading" style="display: none;">Correct Key</h3>
+            </div>
+            <!-- OMR Sheet Grid -->
+            <div id="omr-sheet">
+                <p class="placeholder">Sheet generating...</p> <!-- Placeholder changed slightly -->
+            </div>
+            <!-- Report Area -->
+            <div id="report-area" class="report" style="display: none;">
+                 <!-- Report content will be injected here -->
+            </div>
+            <!-- Action Buttons -->
+            <div id="actions">
+                 <button id="edit-answers-btn" style="display: none;">Edit My Answers</button>
+                 <button id="main-action-btn" style="display: none;">Submit Answers & Enter Key</button>
+                 <button id="clear-btn" style="display: none;">Clear All Selections</button>
+            </div>
+        </section>
+    </main>
+
+        <footer>
+        <p>A simple tool for focused practice. | Created by Arpit Singh</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
