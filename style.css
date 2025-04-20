@@ -3,7 +3,7 @@
 /* --- Base Styles --- */
 body { font-family: sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; min-height: 100vh; display: flex; flex-direction: column; }
 header, footer { text-align: center; margin-bottom: 20px; color: #333; flex-shrink: 0; }
-main { max-width: 900px; width: 100%; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-grow: 1; box-sizing: border-box; /* Ensure padding is included */ }
+main { max-width: 900px; width: 100%; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-grow: 1; box-sizing: border-box; }
 #controls, #omr-sheet-container { margin-bottom: 30px; }
 h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; color: #555; }
 
@@ -14,7 +14,7 @@ h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; margin-
 .control-group input[type="text"], .control-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 1em; }
 #input-help { font-size: 0.9em; color: #666; display: block; margin-top: 3px; }
 
-button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; margin-right: 5px; }
+button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; margin-right: 5px; vertical-align: middle; /* Helps alignment */ }
 button:last-child { margin-right: 0; }
 button:hover { background-color: #0056b3; }
 #clear-btn { background-color: #dc3545; }
@@ -28,10 +28,10 @@ button:hover { background-color: #0056b3; }
 .omr-headings h3 { margin: 0; font-size: 1em; color: #444; font-weight: normal; }
 #correct-key-heading { text-align: right; }
 
-#omr-sheet { margin-top: 5px; display: grid; grid-template-columns: 1fr; gap: 0 20px; /* Remove side padding here */ }
+#omr-sheet { margin-top: 5px; display: grid; grid-template-columns: 1fr; gap: 0 20px; }
 #omr-sheet .placeholder { color: #888; text-align: center; grid-column: 1 / -1; padding: 20px; }
 
-.question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; /* Default: no wrap */ gap: 10px; transition: background-color 0.3s ease; }
+.question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; gap: 10px; transition: background-color 0.3s ease; }
 .question-row:last-child { border-bottom: none; }
 .question-number { min-width: 40px; font-weight: bold; flex-shrink: 0; text-align: right; margin-right: 0; }
 
@@ -67,45 +67,24 @@ button:hover { background-color: #0056b3; }
 .report strong { font-size: 1.1em; }
 
 /* --- Action Buttons Area --- */
-#actions { text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px; }
+#actions {
+    text-align: right;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center; /* *** ADDED: Vertically align buttons *** */
+}
 
 /* --- Responsive Layout --- */
 /* Mobile */
 @media (max-width: 767px) {
-    /* Remove side padding from the grid itself */
-    /* #omr-sheet-container #omr-sheet {
-        padding-left: 15px;
-        padding-right: 15px;
-    } */
-
-    /* Ensure the row doesn't wrap and stays centered within the grid column */
-     .question-row {
-        flex-wrap: nowrap; /* *** CHANGED: Prevent wrapping *** */
-        /* gap: 5px; */ /* Optionally reduce gap further if needed */
-        justify-content: flex-start; /* Align items to the start */
-        padding-left: 0; padding-right: 0;
-     }
-     .question-number {
-         min-width: 30px; /* Further reduce min-width */
-         text-align: left;
-         font-weight: bold;
-         margin-right: 5px; /* Add small margin back */
-     }
-     .options {
-        /* Remove rules that force wrapping */
-        /* flex-basis: 100%; */
-        /* order: 1; */
-        justify-content: flex-start; /* Keep left align */
-     }
-     .key-entry-options {
-        /* Remove rules that force wrapping */
-        /* flex-basis: 100%; */
-        /* order: 2; */
-        margin-left: 0; padding-left: 0; border-left: none;
-        border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px;
-        justify-content: flex-start; /* Align key entry left */
-        display: none;
-     }
+     .question-row { flex-wrap: nowrap; justify-content: flex-start; padding-left: 0; padding-right: 0; }
+     .question-number { min-width: 30px; text-align: left; font-weight: bold; margin-right: 5px; }
+     .options { justify-content: flex-start; }
+     .key-entry-options { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; justify-content: flex-start; display: none; }
      .key-entry-active .key-entry-options { display: flex; }
      .key-entry-active:not(.show-results) .options { display: none; }
      .key-entry-active.show-results .options { display: flex; }
@@ -121,7 +100,7 @@ button:hover { background-color: #0056b3; }
     #omr-sheet { grid-template-columns: 1fr 1fr; gap: 0 30px; }
     #omr-sheet .placeholder { grid-column: 1 / span 2; }
     .question-row { flex-wrap: nowrap; gap: 10px; }
-    .question-number { font-weight: bold; min-width: 40px; text-align: right; } /* Restore desktop styles */
+    .question-number { font-weight: bold; min-width: 40px; text-align: right; }
      .key-entry-options { border-top: none; padding-top: 0; margin-top: 0; justify-content: flex-start; display: none; }
      .key-entry-active .key-entry-options { display: flex; }
      .key-entry-active:not(.show-results) .options { display: none; }
