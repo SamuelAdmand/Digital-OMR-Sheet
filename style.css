@@ -14,7 +14,7 @@ h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; margin-
 .control-group input[type="text"], .control-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 1em; }
 #input-help { font-size: 0.9em; color: #666; display: block; margin-top: 3px; }
 
-button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; margin-right: 5px; vertical-align: middle; /* Helps alignment */ }
+button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; margin-right: 5px; vertical-align: middle; }
 button:last-child { margin-right: 0; }
 button:hover { background-color: #0056b3; }
 #clear-btn { background-color: #dc3545; }
@@ -31,7 +31,7 @@ button:hover { background-color: #0056b3; }
 #omr-sheet { margin-top: 5px; display: grid; grid-template-columns: 1fr; gap: 0 20px; }
 #omr-sheet .placeholder { color: #888; text-align: center; grid-column: 1 / -1; padding: 20px; }
 
-.question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; gap: 10px; transition: background-color 0.3s ease; }
+.question-row { display: flex; align-items: center; /* Default alignment */ padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; /* Default: no wrap */ gap: 10px; transition: background-color 0.3s ease; }
 .question-row:last-child { border-bottom: none; }
 .question-number { min-width: 40px; font-weight: bold; flex-shrink: 0; text-align: right; margin-right: 0; }
 
@@ -67,30 +67,52 @@ button:hover { background-color: #0056b3; }
 .report strong { font-size: 1.1em; }
 
 /* --- Action Buttons Area --- */
-#actions {
-    text-align: right;
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    align-items: center; /* *** ADDED: Vertically align buttons *** */
-}
+#actions { text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
 
 /* --- Responsive Layout --- */
 /* Mobile */
 @media (max-width: 767px) {
-     .question-row { flex-wrap: nowrap; justify-content: flex-start; padding-left: 0; padding-right: 0; }
-     .question-number { min-width: 30px; text-align: left; font-weight: bold; margin-right: 5px; }
-     .options { justify-content: flex-start; }
-     .key-entry-options { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; justify-content: flex-start; display: none; }
+     .question-row {
+        flex-wrap: wrap; /* *** ALLOW wrapping on mobile *** */
+        gap: 5px;        /* Reduce gap slightly */
+        padding-left: 10px; /* Add padding to the row itself for centering */
+        padding-right: 10px;
+     }
+     .question-number {
+         flex-basis: 100%; /* *** Make number take full width to force wrap *** */
+         min-width: auto;   /* Remove min-width */
+         text-align: left;
+         font-weight: bold;
+         margin-bottom: 5px; /* Add space below number */
+         margin-right: 0; /* Remove right margin */
+     }
+     .options, .key-entry-options {
+        flex-basis: 100%;         /* *** Allow bubble containers to take full width *** */
+        justify-content: flex-start;/* Align bubbles left */
+        padding-left: 0;          /* Reset padding if added earlier */
+        margin-left: 0;           /* Reset margin */
+        border-left: none;        /* Remove border */
+        border-top: none;         /* Remove top border */
+        margin-top: 0;            /* Reset top margin */
+        padding-top: 0;           /* Reset top padding */
+     }
+     /* Ensure key options show when active */
      .key-entry-active .key-entry-options { display: flex; }
+     /* Hide user options during key entry (unless results shown) */
      .key-entry-active:not(.show-results) .options { display: none; }
+     /* Ensure user options show when results are active */
      .key-entry-active.show-results .options { display: flex; }
-     .key-entry-active.show-results .key-entry-options { display: block; border-top: 1px dashed #ccc; }
+     /* Style key options slightly differently when results shown on mobile */
+     .key-entry-active.show-results .key-entry-options {
+        display: block; /* Keep as block for single bubble */
+        border-top: 1px dashed #ccc; /* Add separator */
+        margin-top: 5px;
+        padding-top: 5px;
+     }
      .key-entry-active.show-results .key-entry-options .option-btn { display: none; }
      .key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
+
+     /* Headings on mobile */
      .omr-headings { flex-direction: column; align-items: flex-start; gap: 3px; }
      #correct-key-heading { text-align: left; }
 }
@@ -99,8 +121,9 @@ button:hover { background-color: #0056b3; }
 @media (min-width: 768px) {
     #omr-sheet { grid-template-columns: 1fr 1fr; gap: 0 30px; }
     #omr-sheet .placeholder { grid-column: 1 / span 2; }
-    .question-row { flex-wrap: nowrap; gap: 10px; }
-    .question-number { font-weight: bold; min-width: 40px; text-align: right; }
+    .question-row { flex-wrap: nowrap; gap: 10px; padding-left: 0; padding-right: 0; /* Reset padding */ }
+    .question-number { font-weight: bold; min-width: 40px; text-align: right; flex-basis: auto; margin-bottom: 0; /* Restore desktop styles */ }
+     .options, .key-entry-options { flex-basis: auto; /* Restore */ }
      .key-entry-options { border-top: none; padding-top: 0; margin-top: 0; justify-content: flex-start; display: none; }
      .key-entry-active .key-entry-options { display: flex; }
      .key-entry-active:not(.show-results) .options { display: none; }
