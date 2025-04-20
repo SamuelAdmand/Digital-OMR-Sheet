@@ -23,80 +23,59 @@ button:hover { background-color: #0056b3; }
 #edit-answers-btn:hover { background-color: #e0a800; }
 
 /* --- OMR Sheet Section --- */
-/* #omr-sheet-container is hidden/shown by JS */
-
 /* Styles for Dynamic Headings */
-.omr-headings {
-    display: flex;
-    justify-content: space-between; /* Space out headings */
-    margin-bottom: 10px;
-    padding: 0 5px; /* Add some padding */
-    border-bottom: 1px dashed #ccc; /* Optional separator */
-    padding-bottom: 5px;
-    min-height: 1.5em; /* Prevent layout shift when headings appear/disappear */
-}
-.omr-headings h3 {
-    margin: 0;
-    font-size: 1em;
-    color: #444;
-    font-weight: normal;
-    /* Specific alignment can be added if needed */
-}
-#correct-key-heading {
-    text-align: right; /* Align key heading right */
-}
-
+.omr-headings { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 0 5px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; min-height: 1.5em; }
+.omr-headings h3 { margin: 0; font-size: 1em; color: #444; font-weight: normal; }
+#correct-key-heading { text-align: right; }
 
 #omr-sheet { margin-top: 5px; display: grid; grid-template-columns: 1fr; gap: 0 20px; }
 #omr-sheet .placeholder { color: #888; text-align: center; grid-column: 1 / -1; padding: 20px; }
 
 .question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; gap: 10px; transition: background-color 0.3s ease; }
 .question-row:last-child { border-bottom: none; }
-.question-number { min-width: 40px; font-weight: bold; flex-shrink: 0; text-align: right; margin-right: 0; }
+.question-number {
+    min-width: 40px;
+    font-weight: bold; /* *** Keep Question Number Bold *** */
+    flex-shrink: 0;
+    text-align: right;
+    margin-right: 0;
+}
 
 .options, .key-entry-options { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
 /* --- Key Entry & Result Display Logic --- */
-.key-entry-options { display: none; } /* Key options hidden by default */
-.key-entry-active .key-entry-options { display: flex; } /* Show key options in key entry mode */
-
-/* Hide user answers during pure key entry */
+.key-entry-options { display: none; }
+.key-entry-active .key-entry-options { display: flex; }
 .key-entry-active:not(.show-results) .options { display: none; }
-
-/* Styles when showing results */
-.key-entry-active.show-results .options { display: flex; } /* Ensure user answers are visible */
-.key-entry-active.show-results .key-entry-options {
-    display: block; /* Change to block to contain the single visible bubble */
-    border-left: 2px solid #007bff;
-    padding-left: 10px;
-    margin-left: 10px; /* Spacing */
-    min-width: 32px; /* Ensure space for at least one bubble+padding */
-    text-align: left; /* Align the single bubble left within its container */
-}
-/* Hide ALL key bubbles by default when showing results */
-.key-entry-active.show-results .key-entry-options .option-btn {
-    display: none;
-}
-/* Explicitly SHOW only the SELECTED key bubble when showing results */
-.key-entry-active.show-results .key-entry-options .option-btn.selected {
-    display: inline-flex; /* Make the selected one visible */
-}
+.key-entry-active.show-results .options { display: flex; }
+.key-entry-active.show-results .key-entry-options { display: block; border-left: 2px solid #007bff; padding-left: 10px; margin-left: 10px; min-width: 32px; text-align: left; }
+.key-entry-active.show-results .key-entry-options .option-btn { display: none; }
+.key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
 
 /* --- Option Buttons (Shared) --- */
-.option-btn { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 50%; background-color: #fff; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease; user-select: none; position: relative; flex-shrink: 0; }
+.option-btn {
+    display: inline-flex; justify-content: center; align-items: center;
+    width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 50%;
+    background-color: #fff; cursor: pointer;
+    /* font-weight: bold; */ /* *** REMOVED Bold from option letters *** */
+    font-size: 0.85em;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    user-select: none; position: relative; flex-shrink: 0;
+    color: #333; /* Default text color */
+}
+
 .option-btn:hover { background-color: #eee; }
-.options .option-btn.selected { background-color: #333; color: #fff; border-color: #333; }
-.key-entry-options .option-btn:hover { background-color: #e2f0ff; } /* Hover still applies even if hidden */
-.key-entry-options .option-btn.selected { background-color: #007bff; color: #fff; border-color: #007bff; }
+/* Selected colors override the default */
+.options .option-btn.selected { background-color: #333; color: #fff; border-color: #333; font-weight: normal; /* Ensure selected isn't bold unless intended */ }
+.key-entry-options .option-btn:hover { background-color: #e2f0ff; }
+.key-entry-options .option-btn.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: normal; }
 
 /* --- Result Styling --- */
 .question-row.correct { background-color: #e9f7ec; }
 .question-row.incorrect { background-color: #fdecea; }
 .key-entry-active.show-results .question-row.incorrect .options .option-btn.selected { background-color: #dc3545; border-color: #dc3545; color: white; opacity: 1; }
-/* Style the single visible correct key bubble */
 .key-entry-active.show-results .question-row.incorrect .key-entry-options .option-btn.selected { background-color: #28a745; border-color: #28a745; color: white; }
-.key-entry-active.show-results .question-row.correct .key-entry-options .option-btn.selected { background-color: #28a745; border-color: #28a745; color: white; } /* Ensure correct key is green */
-
+.key-entry-active.show-results .question-row.correct .key-entry-options .option-btn.selected { background-color: #28a745; border-color: #28a745; color: white; }
 
 /* --- Report Area --- */
 .report { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
@@ -110,19 +89,17 @@ button:hover { background-color: #0056b3; }
 /* --- Responsive Layout --- */
 /* Mobile */
 @media (max-width: 767px) {
-     .question-row { flex-wrap: wrap; gap: 10px; }
-     .question-number { min-width: 35px; text-align: left; }
+    #omr-sheet-container #omr-sheet { padding-left: 15px; padding-right: 15px; }
+     .question-row { flex-wrap: wrap; gap: 10px; padding-left: 0; padding-right: 0; }
+     .question-number { min-width: 35px; text-align: left; font-weight: bold; /* Ensure bold on mobile too */ }
      .options { flex-basis: 100%; justify-content: flex-start; order: 1; }
-     .key-entry-options { flex-basis: 100%; margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; justify-content: flex-end; order: 2; display: none; }
-     .key-entry-active .key-entry-options { display: flex; } /* Base show */
-     .key-entry-active:not(.show-results) .options { display: none; } /* Hide user answers */
-     .key-entry-active.show-results .options { display: flex; } /* Show user answers */
-     .key-entry-active.show-results .key-entry-options { display: block; border-top: 1px dashed #ccc; } /* Show key container */
-     /* Hide ALL key bubbles by default when showing results */
+     .key-entry-options { flex-basis: 100%; margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; justify-content: flex-start; order: 2; display: none; }
+     .key-entry-active .key-entry-options { display: flex; }
+     .key-entry-active:not(.show-results) .options { display: none; }
+     .key-entry-active.show-results .options { display: flex; }
+     .key-entry-active.show-results .key-entry-options { display: block; border-top: 1px dashed #ccc; }
      .key-entry-active.show-results .key-entry-options .option-btn { display: none; }
-     /* Explicitly SHOW only the SELECTED key bubble */
      .key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
-     /* Headings on mobile */
      .omr-headings { flex-direction: column; align-items: flex-start; gap: 3px; }
      #correct-key-heading { text-align: left; }
 }
@@ -132,16 +109,14 @@ button:hover { background-color: #0056b3; }
     #omr-sheet { grid-template-columns: 1fr 1fr; gap: 0 30px; }
     #omr-sheet .placeholder { grid-column: 1 / span 2; }
     .question-row { flex-wrap: nowrap; gap: 10px; }
+    .question-number { font-weight: bold; /* Ensure bold on desktop */ }
      .key-entry-options { border-top: none; padding-top: 0; margin-top: 0; justify-content: flex-start; display: none; }
-     .key-entry-active .key-entry-options { display: flex; } /* Base show */
-     .key-entry-active:not(.show-results) .options { display: none; } /* Hide user answers */
-     .key-entry-active.show-results .options { display: flex; } /* Show user answers */
-     .key-entry-active.show-results .key-entry-options { display: block; border-left: 2px solid #007bff; padding-left: 10px; margin-left: 10px; } /* Show key container */
-     /* Hide ALL key bubbles by default when showing results */
+     .key-entry-active .key-entry-options { display: flex; }
+     .key-entry-active:not(.show-results) .options { display: none; }
+     .key-entry-active.show-results .options { display: flex; }
+     .key-entry-active.show-results .key-entry-options { display: block; border-left: 2px solid #007bff; padding-left: 10px; margin-left: 10px; }
      .key-entry-active.show-results .key-entry-options .option-btn { display: none; }
-     /* Explicitly SHOW only the SELECTED key bubble */
      .key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
-      /* Headings on desktop */
      .omr-headings { flex-direction: row; align-items: center; }
      #correct-key-heading { text-align: right; }
 }
