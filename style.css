@@ -33,10 +33,10 @@ button:hover { opacity: 0.9; }
 #omr-sheet { margin-top: 5px; display: grid; grid-template-columns: 1fr; gap: 0 20px; }
 #omr-sheet .placeholder { color: #888; text-align: center; grid-column: 1 / -1; padding: 20px; }
 
-.question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; /* Keep nowrap as default */ gap: 10px; transition: background-color 0.3s ease; }
+.question-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; flex-wrap: nowrap; gap: 10px; transition: background-color 0.3s ease, opacity 0.3s ease; /* Added opacity transition */ }
 .question-row:last-child { border-bottom: none; }
+.question-row:nth-child(even) { background-color: #f8f8f8; } /* Alternating */
 .question-number { min-width: 40px; font-weight: bold; flex-shrink: 0; text-align: right; margin-right: 0; }
-
 .options, .key-entry-options { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
 /* --- Key Entry & Result Display Logic --- */
@@ -55,9 +55,26 @@ button:hover { opacity: 0.9; }
 .key-entry-options .option-btn:hover { background-color: #e2f0ff; }
 .key-entry-options .option-btn.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: normal; }
 
-/* --- Result Styling --- */
-.question-row.correct { background-color: #e9f7ec; }
-.question-row.incorrect { background-color: #fdecea; }
+/* --- Skipped Question Styling --- */
+.question-row.skipped-question {
+    opacity: 0.6; /* Make the whole row slightly faded */
+}
+.question-row.skipped-question .key-entry-options .option-btn {
+    cursor: not-allowed; /* Indicate it's not meant to be clicked */
+    opacity: 0.5; /* Further fade the bubbles */
+    /* pointer-events: none; */ /* Uncomment to completely disable clicks */
+}
+
+/* --- Result Styling (Overrides Skipped/Alternating) --- */
+.question-row.correct { background-color: #e9f7ec !important; opacity: 1 !important; }
+.question-row.incorrect { background-color: #fdecea !important; opacity: 1 !important; }
+
+/* Ensure skipped styles don't interfere with result bubble appearance */
+.question-row.skipped-question.correct .key-entry-options .option-btn,
+.question-row.skipped-question.incorrect .key-entry-options .option-btn {
+     cursor: default; opacity: 1; /* pointer-events: auto; */
+}
+
 .key-entry-active.show-results .question-row.incorrect .options .option-btn.selected { background-color: #dc3545; border-color: #dc3545; color: white; opacity: 1; }
 .key-entry-active.show-results .question-row.incorrect .key-entry-options .option-btn.selected { background-color: #28a745; border-color: #28a745; color: white; }
 .key-entry-active.show-results .question-row.correct .key-entry-options .option-btn.selected { background-color: #28a745; border-color: #28a745; color: white; }
@@ -74,48 +91,18 @@ button:hover { opacity: 0.9; }
 /* --- Responsive Layout --- */
 /* Mobile */
 @media (max-width: 767px) {
-     .question-row {
-        flex-wrap: nowrap; /* *** Ensure NO wrapping *** */
-        gap: 5px;          /* Reduce gap between number and bubbles */
-        padding-left: 10px;
-        padding-right: 10px;
-     }
-     .question-number {
-        /* Remove rules that force wrapping */
-        /* flex-basis: 100%; */
-        min-width: 30px;   /* Keep it small */
-        text-align: left;
-        font-weight: bold;
-        margin-bottom: 0; /* Reset margin */
-        margin-right: 5px; /* Keep small margin */
-     }
-     .options, .key-entry-options {
-        /* Remove rules that force wrapping */
-        /* flex-basis: 100%; */
-        justify-content: flex-start;
-        /* Reset mobile-specific styles from previous attempts */
-        padding-left: 0; margin-left: 0; border-left: none; border-top: none; margin-top: 0; padding-top: 0;
-     }
-     /* Key entry still needs to be hidden/shown correctly */
+     .question-row { flex-wrap: nowrap; gap: 5px; padding-left: 10px; padding-right: 10px; }
+     .question-number { min-width: 30px; text-align: left; font-weight: bold; margin-right: 5px; }
+     .options, .key-entry-options { justify-content: flex-start; }
      .key-entry-options { display: none; }
-     .key-entry-active .key-entry-options { display: flex; } /* Show in key entry mode */
-     .key-entry-active:not(.show-results) .options { display: none; } /* Hide user answers */
-     /* Styles for when results are shown on mobile */
-     .key-entry-active.show-results .options { display: flex; } /* Show user answers */
-     .key-entry-active.show-results .key-entry-options {
-         display: block; /* Still block for single bubble */
-         border-left: none; /* No border needed when stacked implicitly */
-         padding-left: 10px; /* Minimal padding */
-         margin-left: 10px; /* Keep some space */
-     }
+     .key-entry-active .key-entry-options { display: flex; }
+     .key-entry-active:not(.show-results) .options { display: none; }
+     .key-entry-active.show-results .options { display: flex; }
+     .key-entry-active.show-results .key-entry-options { display: block; border-left: none; padding-left: 10px; margin-left: 10px; border-top: 1px dashed #ccc; margin-top: 5px; padding-top: 5px; }
      .key-entry-active.show-results .key-entry-options .option-btn { display: none; }
      .key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
-
-     /* Headings stack */
      .omr-headings { flex-direction: column; align-items: flex-start; gap: 3px; }
      #correct-key-heading { text-align: left; }
-
-     /* Action buttons stack */
      #actions { flex-direction: column; align-items: stretch; gap: 8px; }
      #actions button { width: 100%; margin-right: 0; }
 }
@@ -136,7 +123,6 @@ button:hover { opacity: 0.9; }
      .key-entry-active.show-results .key-entry-options .option-btn.selected { display: inline-flex; }
      .omr-headings { flex-direction: row; align-items: center; }
      #correct-key-heading { text-align: right; }
-     /* Action buttons row */
      #actions { flex-direction: row; align-items: center; justify-content: flex-end; }
      #actions button { width: auto; margin-right: 5px; }
      #actions button:last-child { margin-right: 0; }
