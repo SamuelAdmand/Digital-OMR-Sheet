@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function hasQuestions() { return currentQuestions.length > 0; }
 
-    // *** NEW: Helper to remove skipped styles ***
     function removeSkippedStyles() {
         if (!omrSheetDiv) return;
         omrSheetDiv.querySelectorAll('.question-row.skipped-question').forEach(row => {
@@ -74,26 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function setAppState(newState) {
         appState = newState;
         localStorage.setItem(LS_STATE_KEY, appState);
-
         removeSkippedStyles(); // Remove skipped styles when state changes
-
         if (appState === 'keyEntry') {
-            // *** Apply skipped styles when entering key entry mode ***
-            omrSheetDiv.querySelectorAll('.question-row').forEach(row => {
-                const qNum = row.dataset.questionNumber;
-                // Check if the user *didn't* answer this question
-                if (!(qNum in userAnswers)) {
-                    row.classList.add('skipped-question');
-                }
-            });
-            localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); // Ensure results aren't shown yet
-            if(omrSheetDiv) omrSheetDiv.classList.remove('show-results');
-        } else {
-             // If moving away from key entry, ensure results flag is cleared
-             localStorage.removeItem(LS_RESULT_DISPLAYED_KEY);
-             if(omrSheetDiv) omrSheetDiv.classList.remove('show-results');
-        }
-
+            omrSheetDiv.querySelectorAll('.question-row').forEach(row => { const qNum = row.dataset.questionNumber; if (!(qNum in userAnswers)) { row.classList.add('skipped-question'); } });
+            localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); if(omrSheetDiv) omrSheetDiv.classList.remove('show-results');
+        } else { localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); if(omrSheetDiv) omrSheetDiv.classList.remove('show-results'); }
         updateUIbasedOnState();
     }
 
@@ -135,8 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderOMRSheet() {
         if (!omrSheetDiv || !omrSheetContainer) return;
         omrSheetDiv.innerHTML = ''; omrSheetDiv.classList.remove('show-results', 'key-entry-active');
-        removeSkippedStyles(); // Ensure skipped styles removed on render
-
+        removeSkippedStyles();
         if (!hasQuestions()) { omrSheetDiv.appendChild(placeholderText); }
         else { const choiceLabels = Array.from({ length: currentChoices }, (_, i) => String.fromCharCode(65 + i)); currentQuestions.forEach(qNum => { const newRow = createQuestionRowElement(qNum, currentChoices); omrSheetDiv.appendChild(newRow); }); }
         updateSectionVisibility(); updateUIbasedOnState();
@@ -154,21 +137,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleInputEnterKey(event) { if (event.key === 'Enter') { event.preventDefault(); handleGenerateSheet(); } }
 
+    // *** UPDATED handleBubbleClick function ***
     function handleBubbleClick(event) {
-        const clickedButton = event.target; if (!clickedButton || !clickedButton.classList.contains('option-btn')) return;
-        const questionRow = clickedButton.closest('.question-row'); if (!questionRow || !questionRow.dataset.questionNumber) return;
+        const clickedButton = event.target;
+        if (!clickedButton || !clickedButton.classList.contains('option-btn')) return; // Ignore clicks not on bubbles
 
-        // *** Prevent interaction with skipped rows during key entry ***
+        const questionRow = clickedButton.closest('.question-row');
+        if (!questionRow || !questionRow.dataset.questionNumber) return; // Ignore clicks outside rows
+
+        // Prevent interaction with skipped rows during key entry
         if (appState === 'keyEntry' && questionRow.classList.contains('skipped-question')) {
-            // Optionally provide feedback, e.g., slight shake or nothing
             console.log("Skipped question - key entry ignored.");
             return;
         }
 
-        const qNum = questionRow.dataset.questionNumber; const selectedValue = clickedButton.dataset.optionValue; const isKeyEntryBubble = clickedButton.closest('.key-entry-options');
-        if (localStorage.getItem(LS_RESULT_DISPLAYED_KEY) === 'true') { localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); if(omrSheetDiv) omrSheetDiv.classList.remove('show-results'); if (reportArea) reportArea.style.display = 'none'; removeResultStyles(); updateUIbasedOnState(); }
-        if (isKeyEntryBubble && appState === 'keyEntry') { if (correctAnswers[qNum] !== selectedValue) { const optionsInKeyRow = questionRow.querySelectorAll('.key-entry-options .option-btn'); optionsInKeyRow.forEach(btn => btn.classList.remove('selected')); clickedButton.classList.add('selected'); correctAnswers[qNum] = selectedValue; saveCorrectAnswersToLocalStorage(); } } else if (!isKeyEntryBubble && appState === 'answering') { if (userAnswers[qNum] !== selectedValue) { const optionsInUserRow = questionRow.querySelectorAll('.options .option-btn'); optionsInUserRow.forEach(btn => btn.classList.remove('selected')); clickedButton.classList.add('selected'); userAnswers[qNum] = selectedValue; saveUserAnswersToLocalStorage(); } }
+        const qNum = questionRow.dataset.questionNumber;
+        const selectedValue = clickedButton.dataset.optionValue;
+        const isKeyEntryBubble = clickedButton.closest('.key-entry-options');
+
+        // Clear results if shown when any bubble is clicked
+        if (localStorage.getItem(LS_RESULT_DISPLAYED_KEY) === 'true') {
+            localStorage.removeItem(LS_RESULT_DISPLAYED_KEY);
+            if(omrSheetDiv) omrSheetDiv.classList.remove('show-results');
+            if (reportArea) reportArea.style.display = 'none';
+            removeResultStyles();
+            updateUIbasedOnState(); // Refresh UI after clearing results
+        }
+
+        // --- Handle Key Entry ---
+        if (isKeyEntryBubble && appState === 'keyEntry') {
+            if (clickedButton.classList.contains('selected')) {
+                // Clicked on already selected KEY bubble: Deselect it
+                clickedButton.classList.remove('selected');
+                delete correctAnswers[qNum]; // Remove from data
+                saveCorrectAnswersToLocalStorage();
+            } else {
+                // Clicked on a new/different KEY bubble: Select it
+                const optionsInKeyRow = questionRow.querySelectorAll('.key-entry-options .option-btn');
+                optionsInKeyRow.forEach(btn => btn.classList.remove('selected')); // Deselect others
+                clickedButton.classList.add('selected');
+                correctAnswers[qNum] = selectedValue; // Update data
+                saveCorrectAnswersToLocalStorage();
+            }
+        }
+        // --- Handle User Answer Entry ---
+        else if (!isKeyEntryBubble && appState === 'answering') {
+             if (clickedButton.classList.contains('selected')) {
+                // Clicked on already selected USER bubble: Deselect it
+                clickedButton.classList.remove('selected');
+                delete userAnswers[qNum]; // Remove from data
+                saveUserAnswersToLocalStorage();
+             } else {
+                // Clicked on a new/different USER bubble: Select it
+                const optionsInUserRow = questionRow.querySelectorAll('.options .option-btn');
+                optionsInUserRow.forEach(btn => btn.classList.remove('selected')); // Deselect others
+                clickedButton.classList.add('selected');
+                userAnswers[qNum] = selectedValue; // Update data
+                saveUserAnswersToLocalStorage();
+             }
+        }
+        // Clicks are ignored if state doesn't match bubble type (e.g., clicking user bubble in keyEntry mode)
     }
+
 
      function handleMainAction() { if (appState === 'answering') { setAppState('keyEntry'); } else if (appState === 'keyEntry') { checkAnswers(); } }
      function handleEditAnswers() { if (appState === 'keyEntry') { localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); if(omrSheetDiv) omrSheetDiv.classList.remove('show-results'); removeSkippedStyles(); setAppState('answering'); } }
@@ -178,8 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (omrSheetDiv) { omrSheetDiv.querySelectorAll('.option-btn.selected').forEach(btn => btn.classList.remove('selected')); }
          userAnswers = {}; correctAnswers = {}; saveUserAnswersToLocalStorage(); saveCorrectAnswersToLocalStorage();
          localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); localStorage.removeItem(LS_STATE_KEY);
-         removeSkippedStyles(); // Ensure skipped styles are removed
-         if(omrSheetDiv) omrSheetDiv.classList.remove('show-results', 'key-entry-active');
+         removeSkippedStyles(); if(omrSheetDiv) omrSheetDiv.classList.remove('show-results', 'key-entry-active');
          appState = 'answering'; currentQuestions = [];
          if (questionInput) questionInput.value = ''; if (numChoicesSelect) numChoicesSelect.value = '4'; currentChoices = 4;
          saveConfigToLocalStorage(); renderOMRSheet();
@@ -189,8 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkAnswers(showAlerts = true) {
         if (!reportArea || !omrSheetDiv) return;
-        removeSkippedStyles(); // Ensure skipped styles removed before showing results
-        let correctCount = 0; let attemptedCount = 0; let keyProvidedCount = 0; const totalQuestionsInSheet = currentQuestions.length; removeResultStyles();
+        removeSkippedStyles(); let correctCount = 0; let attemptedCount = 0; let keyProvidedCount = 0; const totalQuestionsInSheet = currentQuestions.length; removeResultStyles();
         currentQuestions.forEach(qNum => { const userAns = userAnswers[qNum]; const correctAns = correctAnswers[qNum]; const row = omrSheetDiv.querySelector(`.question-row[data-question-number="${qNum}"]`); if (!row) return; if (correctAns) keyProvidedCount++; if (userAns) { attemptedCount++; if (correctAns) { if (userAns === correctAns) { correctCount++; row.classList.add('correct'); } else { row.classList.add('incorrect'); } } } });
         if (keyProvidedCount === 0 && totalQuestionsInSheet > 0) { if (showAlerts) { alert("Please enter the correct answers..."); } localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); omrSheetDiv.classList.remove('show-results'); return; }
         if (totalQuestionsInSheet === 0) { reportArea.style.display = 'none'; localStorage.removeItem(LS_RESULT_DISPLAYED_KEY); omrSheetDiv.classList.remove('show-results'); return; }
