@@ -2,6 +2,7 @@ import './style.css';
 
 // --- Types ---
 type AppState = 'answering' | 'keyEntry';
+type Theme = 'light' | 'dark';
 
 interface Session {
   id: string;
@@ -16,8 +17,9 @@ interface Session {
 }
 
 // --- Constants ---
-const STORAGE_SESSIONS_KEY = 'omr_sessions_v5';
+const STORAGE_SESSIONS_KEY = 'omr_sessions_v6';
 const STORAGE_CURRENT_CONFIG = 'omr_current_config';
+const STORAGE_THEME_KEY = 'omr_theme';
 
 // --- State ---
 let appState: AppState = 'answering';
@@ -26,8 +28,10 @@ let currentQuestions: number[] = [];
 let userAnswers: Record<number, string> = {};
 let correctAnswers: Record<number, string> = {};
 let sessions: Session[] = [];
+let currentTheme: Theme = 'light';
 
 // --- DOM Elements ---
+const body = document.body;
 const controlsSection = document.getElementById('controls')!;
 const omrSheetContainer = document.getElementById('omr-sheet-container')!;
 const omrSheetDiv = document.getElementById('omr-sheet')!;
@@ -40,12 +44,15 @@ const clearBtn = document.getElementById('clear-btn')!;
 const reportArea = document.getElementById('report-area')!;
 const historyList = document.getElementById('history-list')!;
 const sessionNameInput = document.getElementById('session-name') as HTMLInputElement;
+const themeToggle = document.getElementById('theme-toggle')!;
 
 // --- Initialization ---
 function init() {
   loadSessions();
+  loadTheme();
   renderHistory();
   
+  themeToggle.addEventListener('click', toggleTheme);
   generateBtn.addEventListener('click', handleGenerateSheet);
   mainActionBtn.addEventListener('click', handleMainAction);
   editAnswersBtn.addEventListener('click', handleEditAnswers);
@@ -55,10 +62,39 @@ function init() {
   // Reload last config if exists
   const lastConfig = localStorage.getItem(STORAGE_CURRENT_CONFIG);
   if (lastConfig) {
-    const { range, choices } = JSON.parse(lastConfig);
-    questionInput.value = range;
-    numChoicesSelect.value = choices.toString();
+    try {
+        const { range, choices } = JSON.parse(lastConfig);
+        questionInput.value = range || '';
+        numChoicesSelect.value = (choices || 4).toString();
+    } catch (e) {
+        console.error("Config load failed", e);
+    }
   }
+}
+
+// --- Theme Logic ---
+function loadTheme() {
+    const savedTheme = localStorage.getItem(STORAGE_THEME_KEY) as Theme;
+    if (savedTheme) {
+        setTheme(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTheme('dark');
+    }
+}
+
+function setTheme(theme: Theme) {
+    currentTheme = theme;
+    body.setAttribute('data-theme', theme);
+    localStorage.setItem(STORAGE_THEME_KEY, theme);
+    // Update meta theme color
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', theme === 'dark' ? '#1e293b' : '#4f46e5');
+    }
+}
+
+function toggleTheme() {
+    setTheme(currentTheme === 'light' ? 'dark' : 'light');
 }
 
 // --- Core Logic ---
@@ -75,6 +111,12 @@ function parseQuestionNumbers(input: string): number[] {
       const start = parseInt(startStr);
       const end = parseInt(endStr);
       if (!isNaN(start) && !isNaN(end) && start <= end) {
+        // Cap at 200 for performance
+        const count = end - start;
+        if (count > 200) {
+            alert("Range too large. Max 200 questions allowed.");
+            return;
+        }
         for (let i = start; i <= end; i++) numbers.add(i);
       }
     } else {
@@ -83,7 +125,7 @@ function parseQuestionNumbers(input: string): number[] {
     }
   });
   
-  return Array.from(numbers).sort((a, b) => a - b);
+  return Array.from(numbers).sort((a, b) => a - b).slice(0, 500); // Safety limit
 }
 
 function handleGenerateSheet() {
@@ -106,19 +148,22 @@ function handleGenerateSheet() {
   
   renderOMRSheet();
   updateUI();
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function renderOMRSheet() {
   omrSheetDiv.innerHTML = '';
   
-  currentQuestions.forEach(qNum => {
+  currentQuestions.forEach((qNum, index) => {
     const row = document.createElement('div');
     row.className = 'question-row';
     row.dataset.questionNumber = qNum.toString();
+    row.style.animationDelay = `${index * 0.05}s`;
     
     const numLabel = document.createElement('span');
     numLabel.className = 'question-number';
-    numLabel.textContent = `${qNum}.`;
+    numLabel.textContent = `${qNum}`;
     
     const optionsDiv = document.createElement('div');
     optionsDiv.className = 'options';
@@ -168,24 +213,29 @@ function handleBubbleClick(e: MouseEvent) {
   
   if (type === 'user' && appState === 'answering') {
     const parent = btn.parentElement!;
+    const isAlreadySelected = btn.classList.contains('selected');
     parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
     
-    if (userAnswers[qNum] === val) {
+    if (isAlreadySelected) {
       delete userAnswers[qNum];
     } else {
       userAnswers[qNum] = val;
       btn.classList.add('selected');
     }
+    // Haptic feedback if available
+    if (window.navigator.vibrate) window.navigator.vibrate(10);
   } else if (type === 'key' && appState === 'keyEntry') {
     const parent = btn.parentElement!;
+    const isAlreadySelected = btn.classList.contains('selected');
     parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
     
-    if (correctAnswers[qNum] === val) {
+    if (isAlreadySelected) {
       delete correctAnswers[qNum];
     } else {
       correctAnswers[qNum] = val;
       btn.classList.add('selected');
     }
+    if (window.navigator.vibrate) window.navigator.vibrate(10);
   }
 }
 
@@ -193,6 +243,7 @@ function handleMainAction() {
   if (appState === 'answering') {
     appState = 'keyEntry';
     updateUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
     calculateResults();
   }
@@ -201,6 +252,7 @@ function handleMainAction() {
 function handleEditAnswers() {
   appState = 'answering';
   updateUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function calculateResults() {
@@ -214,20 +266,28 @@ function calculateResults() {
   });
   
   reportArea.innerHTML = `
-    <h3>Results</h3>
-    <div class="result-stats">
-      <p>Score: <strong>${correct} / ${attempted}</strong></p>
-      <p>Accuracy: <strong>${attempted > 0 ? Math.round((correct / attempted) * 100) : 0}%</strong></p>
+    <div class="card" style="text-align: center; border-left: 4px solid var(--primary);">
+        <h3 style="margin-bottom: 1rem;">Results</h3>
+        <div style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+            ${correct} / ${attempted}
+        </div>
+        <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+            Accuracy: ${attempted > 0 ? Math.round((correct / attempted) * 100) : 0}%
+        </p>
+        <button id="save-session-btn" class="btn-primary" style="width: 100%;">Save Result</button>
     </div>
-    <button id="save-session-btn" class="btn-primary" style="margin-top: 1rem;">Save Session</button>
   `;
   reportArea.style.display = 'block';
   document.getElementById('save-session-btn')!.onclick = saveCurrentSession;
+  
+  // Scroll to results
+  reportArea.scrollIntoView({ behavior: 'smooth' });
 }
 
 function updateUI() {
-  controlsSection.style.display = currentQuestions.length > 0 ? 'none' : 'block';
-  omrSheetContainer.style.display = currentQuestions.length > 0 ? 'block' : 'none';
+  const hasQuestions = currentQuestions.length > 0;
+  controlsSection.style.display = hasQuestions ? 'none' : 'block';
+  omrSheetContainer.style.display = hasQuestions ? 'block' : 'none';
   
   const userOpts = document.querySelectorAll('.options');
   const keyOpts = document.querySelectorAll('.key-entry-options');
@@ -236,27 +296,28 @@ function updateUI() {
   keyOpts.forEach(el => (el as HTMLElement).style.display = appState === 'keyEntry' ? 'flex' : 'none');
   
   mainActionBtn.style.display = 'inline-block';
-  mainActionBtn.textContent = appState === 'answering' ? 'Submit & Enter Key' : 'Show Results';
+  mainActionBtn.textContent = appState === 'answering' ? 'Lock & Key' : 'Check';
   editAnswersBtn.style.display = appState === 'keyEntry' ? 'inline-block' : 'none';
   clearBtn.style.display = 'inline-block';
 }
 
 function handleClearAll() {
-  if (confirm('Clear everything?')) {
+  if (confirm('Delete this sheet?')) {
     currentQuestions = [];
     userAnswers = {};
     correctAnswers = {};
     appState = 'answering';
     reportArea.style.display = 'none';
+    sessionNameInput.value = '';
     updateUI();
   }
 }
 
 // --- Persistence ---
 function saveCurrentSession() {
-  const name = sessionNameInput.value.trim() || `Session ${new Date().toLocaleString()}`;
+  const name = sessionNameInput.value.trim() || `Session ${new Date().toLocaleDateString()}`;
   const newSession: Session = {
-    id: crypto.randomUUID(),
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(16).substring(2),
     name,
     timestamp: Date.now(),
     config: {
@@ -268,32 +329,40 @@ function saveCurrentSession() {
   };
   
   sessions.unshift(newSession);
-  localStorage.setItem(STORAGE_SESSIONS_KEY, JSON.stringify(sessions));
+  localStorage.setItem(STORAGE_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 50))); // Keep last 50
   renderHistory();
-  alert('Session saved!');
+  alert('Saved to history!');
 }
 
 function loadSessions() {
   const data = localStorage.getItem(STORAGE_SESSIONS_KEY);
-  if (data) sessions = JSON.parse(data);
+  if (data) {
+    try {
+        sessions = JSON.parse(data);
+    } catch(e) {
+        sessions = [];
+    }
+  }
 }
 
 function renderHistory() {
   if (sessions.length === 0) {
-    historyList.innerHTML = '<p class="empty-history">No saved sessions yet.</p>';
+    historyList.innerHTML = '<p class="empty-history" style="grid-column: 1/-1; text-align: center; padding: 2rem;">No saved sessions yet.</p>';
     return;
   }
   
   historyList.innerHTML = sessions.map(s => `
     <div class="history-item">
-      <h4>${s.name}</h4>
-      <p>${new Date(s.timestamp).toLocaleDateString()}</p>
-      <button class="btn-secondary btn-sm" onclick="window.loadSession('${s.id}')">View</button>
+      <div>
+        <h4>${s.name}</h4>
+        <p>${new Date(s.timestamp).toLocaleDateString()}</p>
+      </div>
+      <button class="btn-secondary" style="padding: 0.5rem 1rem; width: 100%; border-radius: 8px;" onclick="window.loadSession('${s.id}')">View result</button>
     </div>
   `).join('');
 }
 
-// Global exposure for history clicks (simplest for now)
+// Global exposure for history clicks
 (window as any).loadSession = (id: string) => {
   const session = sessions.find(s => s.id === id);
   if (session) {
@@ -305,6 +374,7 @@ function renderHistory() {
     renderOMRSheet();
     updateUI();
     calculateResults();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
 

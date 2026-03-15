@@ -2,73 +2,86 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Premium Digital OMR Sheet</title>
+    
+    <!-- PWA & Mobile Meta -->
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="icon-192x192.png" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="app">
       <header>
-        <h1>Digital OMR Sheet</h1>
-        <p class="subtitle">Focused practice, seamless analysis.</p>
+        <h1>Digital OMR</h1>
+        <div class="header-right">
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+            <!-- Moon Icon -->
+            <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <!-- Sun Icon -->
+            <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="18.36" x2="5.64" y2="16.92"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
       </header>
 
       <main>
         <section id="controls">
           <div class="card">
-            <h2>Configuration</h2>
+            <h2>New Session</h2>
             <div class="control-group">
               <label for="question-numbers">Question Range / Numbers</label>
-              <input type="text" id="question-numbers" placeholder="e.g., 1-10, 15-23, 28" />
-              <small>Enter individual numbers or ranges (e.g., 1-5, 8, 11-13)</small>
+              <input type="text" id="question-numbers" placeholder="e.g., 1-10, 15-23, 28" inputmode="text" />
+              <small>Example: 1-10, 15, 20-25</small>
             </div>
             <div class="control-group">
-              <label for="num-choices">Choices per Question</label>
+              <label for="num-choices">Options per Question</label>
               <select id="num-choices">
                 <option value="4" selected>4 (A-D)</option>
                 <option value="5">5 (A-E)</option>
                 <option value="6">6 (A-F)</option>
               </select>
             </div>
-            <button id="generate-btn" class="btn-primary">Generate OMR Sheet</button>
+            <button id="generate-btn" class="btn-primary" style="width: 100%;">Create OMR Sheet</button>
           </div>
         </section>
 
         <section id="omr-sheet-container" style="display: none;">
-          <div class="omr-header-actions">
-            <div class="omr-titles">
-              <h3 id="user-answers-heading" style="display: none;">Your Answers</h3>
-              <h3 id="correct-key-heading" style="display: none;">Correct Key</h3>
-            </div>
-            <div class="session-info">
-               <input type="text" id="session-name" placeholder="Session Name (e.g., Physics Test 1)" />
-            </div>
+          <div class="card" style="padding: 1rem; margin-bottom: 1rem;">
+             <input type="text" id="session-name" placeholder="Name this session..." style="border: none; padding: 0.5rem 0; font-weight: 600; font-size: 1.1rem; width: 100%; outline: none; background: transparent;" />
           </div>
 
           <div id="omr-sheet" class="omr-grid">
-            <p class="placeholder">Sheet generating...</p>
+            <p class="placeholder">Generating...</p>
           </div>
 
-          <div id="report-area" class="report-card" style="display: none;"></div>
+          <div id="report-area" style="display: none;"></div>
 
           <div id="actions">
-            <button id="edit-answers-btn" class="btn-secondary" style="display: none;">Edit Answers</button>
-            <button id="main-action-btn" class="btn-primary" style="display: none;">Submit & Enter Key</button>
-            <button id="clear-btn" class="btn-danger" style="display: none;">Clear Sheet</button>
+            <button id="clear-btn" class="btn-danger">Clear</button>
+            <button id="edit-answers-btn" class="btn-secondary" style="display: none;">Edit</button>
+            <button id="main-action-btn" class="btn-primary">Submit</button>
           </div>
         </section>
 
         <section id="history-section" class="history-container">
-          <h2>Recent Sessions</h2>
+          <h2>Recent History</h2>
           <div id="history-list" class="history-grid">
-             <p class="empty-history">No saved sessions yet.</p>
+             <p class="empty-history">No history yet.</p>
           </div>
         </section>
       </main>
 
       <footer>
-        <p>Created with precision for students.</p>
-        <p class="credits">By Arpit Singh</p>
+        <p>Premium Digital OMR Sheet</p>
+        <p class="credits">Crafted by Arpit Singh</p>
       </footer>
     </div>
     <script type="module" src="src/main.ts"></script>
