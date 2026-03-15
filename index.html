@@ -1,64 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customizable Digital OMR Sheet</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>Customizable Digital OMR Sheet</h1>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Premium Digital OMR Sheet</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Digital OMR Sheet</h1>
+        <p class="subtitle">Focused practice, seamless analysis.</p>
+      </header>
 
-    <main>
+      <main>
         <section id="controls">
+          <div class="card">
             <h2>Configuration</h2>
             <div class="control-group">
-                <label for="question-numbers">Question Numbers:</label>
-                <input type="text" id="question-numbers" name="question-numbers" placeholder="e.g., 1-10, 15-23, 28" aria-describedby="input-help">
-                <small id="input-help">Enter individual numbers or ranges (e.g., 1-5, 8, 11-13)</small>
+              <label for="question-numbers">Question Range / Numbers</label>
+              <input type="text" id="question-numbers" placeholder="e.g., 1-10, 15-23, 28" />
+              <small>Enter individual numbers or ranges (e.g., 1-5, 8, 11-13)</small>
             </div>
             <div class="control-group">
-                <label for="num-choices">Choices per Question:</label>
-                <select id="num-choices" name="num-choices">
-                    <option value="4" selected>4 (A-D)</option>
-                    <option value="5">5 (A-E)</option>
-                    <option value="6">6 (A-F)</option>
-                </select>
+              <label for="num-choices">Choices per Question</label>
+              <select id="num-choices">
+                <option value="4" selected>4 (A-D)</option>
+                <option value="5">5 (A-E)</option>
+                <option value="6">6 (A-F)</option>
+              </select>
             </div>
-            <button id="generate-btn">Generate OMR Sheet</button>
+            <button id="generate-btn" class="btn-primary">Generate OMR Sheet</button>
+          </div>
         </section>
 
-        <!-- OMR Sheet Section - Initially Hidden via JS/CSS -->
         <section id="omr-sheet-container" style="display: none;">
-            <!-- Dynamic Headings -->
-            <div class="omr-headings">
-                <h3 id="user-answers-heading" style="display: none;">Your Answers</h3>
-                <h3 id="correct-key-heading" style="display: none;">Correct Key</h3>
+          <div class="omr-header-actions">
+            <div class="omr-titles">
+              <h3 id="user-answers-heading" style="display: none;">Your Answers</h3>
+              <h3 id="correct-key-heading" style="display: none;">Correct Key</h3>
             </div>
-            <!-- OMR Sheet Grid -->
-            <div id="omr-sheet">
-                <p class="placeholder">Sheet generating...</p>
+            <div class="session-info">
+               <input type="text" id="session-name" placeholder="Session Name (e.g., Physics Test 1)" />
             </div>
-            <!-- Report Area -->
-            <div id="report-area" class="report" style="display: none;">
-                 <!-- Report content will be injected here -->
-            </div>
-            <!-- Action Buttons -->
-            <div id="actions">
-                 <button id="edit-answers-btn" style="display: none;">Edit My Answers</button>
-                 <button id="main-action-btn" style="display: none;">Submit Answers & Enter Key</button>
-                 <button id="clear-btn" style="display: none;">Clear All Selections</button>
-            </div>
+          </div>
+
+          <div id="omr-sheet" class="omr-grid">
+            <p class="placeholder">Sheet generating...</p>
+          </div>
+
+          <div id="report-area" class="report-card" style="display: none;"></div>
+
+          <div id="actions">
+            <button id="edit-answers-btn" class="btn-secondary" style="display: none;">Edit Answers</button>
+            <button id="main-action-btn" class="btn-primary" style="display: none;">Submit & Enter Key</button>
+            <button id="clear-btn" class="btn-danger" style="display: none;">Clear Sheet</button>
+          </div>
         </section>
-    </main>
 
-    <footer>
-        <p>A simple tool for focused practice.</p>
-        <p style="margin-top: 10px; font-size: 0.9em; color: #555;">Created by Arpit Singh</p>
-    </footer>
+        <section id="history-section" class="history-container">
+          <h2>Recent Sessions</h2>
+          <div id="history-list" class="history-grid">
+             <p class="empty-history">No saved sessions yet.</p>
+          </div>
+        </section>
+      </main>
 
-    <script src="app.js"></script>
-</body>
+      <footer>
+        <p>Created with precision for students.</p>
+        <p class="credits">By Arpit Singh</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

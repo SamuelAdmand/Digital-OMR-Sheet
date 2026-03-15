@@ -1,0 +1,22 @@
+{
+  "name": "Premium Digital OMR Sheet",
+  "short_name": "OMR Sheet",
+  "description": "A customizable digital OMR sheet for practice and exam simulation.",
+  "theme_color": "#4f46e5",
+  "background_color": "#f8fafc",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
